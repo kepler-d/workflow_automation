@@ -17,6 +17,11 @@ const LogNode = ({ data }) => {
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-500">Print message to console</p>
+        {data?.config && (
+          <div className="mt-2 text-xs font-mono bg-gray-100 p-1.5 rounded border border-gray-200 text-gray-800 truncate">
+            Msg: {data.config.message}
+          </div>
+        )}
       </div>
       <Handle 
         type="source" 

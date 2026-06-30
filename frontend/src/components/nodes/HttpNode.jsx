@@ -17,6 +17,11 @@ const HttpNode = ({ data }) => {
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-500">Make an external API call</p>
+        {data?.config && (
+          <div className="mt-2 text-xs font-mono bg-blue-50 p-1.5 rounded border border-blue-100 text-blue-800">
+            {data.config.method} {data.config.url || '(No URL)'}
+          </div>
+        )}
       </div>
       <Handle 
         type="source" 

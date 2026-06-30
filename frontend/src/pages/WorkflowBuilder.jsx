@@ -82,11 +82,17 @@ const WorkflowBuilder = () => {
     const xPos = Math.random() * 200 + 100;
     const yPos = Math.random() * 200 + 100;
 
+    let config = {};
+    if (type === 'webhook') config = { path: "/new-user" };
+    if (type === 'log') config = { message: "Workflow Started" };
+    if (type === 'delay') config = { seconds: 10 };
+    if (type === 'http') config = { url: "", method: "GET" };
+
     const newNode = {
       id: newNodeId,
       type,
       position: { x: xPos, y: yPos },
-      data: { label: `${type} node` },
+      data: { label: `${type} node`, config },
     };
 
     setNodes((nds) => nds.concat(newNode));

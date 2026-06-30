@@ -17,6 +17,11 @@ const DelayNode = ({ data }) => {
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-500">Wait for specified time</p>
+        {data?.config && (
+          <div className="mt-2 text-xs font-mono bg-amber-50 p-1.5 rounded border border-amber-100 text-amber-800">
+            {data.config.seconds} seconds
+          </div>
+        )}
       </div>
       <Handle 
         type="source" 

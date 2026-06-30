@@ -12,6 +12,11 @@ const WebhookNode = ({ data }) => {
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-500">Wait for incoming request</p>
+        {data?.config && (
+          <div className="mt-2 text-xs font-mono bg-purple-50 p-1.5 rounded border border-purple-100 text-purple-800">
+            Path: {data.config.path}
+          </div>
+        )}
       </div>
       <Handle 
         type="source" 
