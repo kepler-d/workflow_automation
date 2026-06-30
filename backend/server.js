@@ -1,22 +1,14 @@
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
 const connectDB = require('./src/config/db');
-const authRoutes = require('./src/routes/authRoutes');
+const app = require('./src/app');
 
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use('/api/auth', authRoutes);
-
-// Health check route
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+// Environment Variable Validation
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET missing in environment variables");
+}
+if (!process.env.MONGODB_URI) {
+  throw new Error("MONGODB_URI missing in environment variables");
+}
 
 const PORT = process.env.PORT || 5000;
 
