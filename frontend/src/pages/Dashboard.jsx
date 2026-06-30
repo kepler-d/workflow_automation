@@ -23,10 +23,11 @@ const Dashboard = () => {
         
         setUser(userRes.data);
         setWorkflows(workflowsRes.data);
-        setLoading(false);
       } catch (err) {
         console.error(err);
         // api interceptor handles the 401 redirect
+      } finally {
+        setLoading(false);
       }
     };
 
