@@ -87,14 +87,25 @@ const executeWorkflow = async (workflow, triggerPayload) => {
   // We'll use a queue to handle BFS traversal.
   const queue = startNodes.map(node => ({
     node,
-    context: { payload: triggerPayload }
+    context: { payload: triggerPayload, pathVisited: new Set() }
   }));
 
   while (queue.length > 0) {
     const { node, context } = queue.shift();
     
+    // Cycle protection
+    if (context.pathVisited.has(node.id)) {
+      console.log(`[Engine] Cycle detected at node ${node.id}. Aborting this branch.`);
+      continue;
+    }
+
+    // Create a new visited set for the path going forward
+    const nextVisited = new Set(context.pathVisited);
+    nextVisited.add(node.id);
+    
     // Execute current node
     const nextContext = await executeNode(node, context);
+    nextContext.pathVisited = nextVisited; // Update it on the next context
 
     // Find next nodes to execute
     const targetIds = graph[node.id] || [];
