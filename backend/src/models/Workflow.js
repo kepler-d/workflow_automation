@@ -11,6 +11,10 @@ const workflowSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please add a workflow name'],
     },
+    webhookPath: {
+      type: String,
+      unique: true,
+    },
     nodes: {
       type: Array,
       default: [],

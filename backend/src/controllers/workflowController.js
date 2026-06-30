@@ -42,6 +42,8 @@ const getWorkflow = async (req, res) => {
   }
 };
 
+const crypto = require('crypto');
+
 // @desc    Create a workflow
 // @route   POST /api/workflows
 // @access  Private
@@ -57,8 +59,14 @@ const createWorkflow = async (req, res) => {
 
     const { name, nodes = [], edges = [], isActive = true } = validationResult.data;
 
+    // Generate a random webhook path like "welcome-flow-a7k29x"
+    const randomHash = crypto.randomBytes(4).toString('hex');
+    const safeName = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const webhookPath = `${safeName || 'workflow'}-${randomHash}`;
+
     const workflow = await Workflow.create({
       name,
+      webhookPath,
       nodes,
       edges,
       isActive,
