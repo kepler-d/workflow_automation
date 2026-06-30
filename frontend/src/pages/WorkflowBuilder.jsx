@@ -11,6 +11,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 
 import WebhookNode from '../components/nodes/WebhookNode';
@@ -78,7 +79,7 @@ const WorkflowBuilder = () => {
 
   const addNode = (type) => {
     // Generate a unique ID and calculate position
-    const newNodeId = `${type}-${Date.now()}`;
+    const newNodeId = `${type}-${uuidv4()}`;
     const xPos = Math.random() * 200 + 100;
     const yPos = Math.random() * 200 + 100;
 

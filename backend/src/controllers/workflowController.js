@@ -55,7 +55,7 @@ const createWorkflow = async (req, res) => {
       });
     }
 
-    const { name, nodes = [], edges = [], isActive = true } = req.body;
+    const { name, nodes = [], edges = [], isActive = true } = validationResult.data;
 
     const workflow = await Workflow.create({
       name,
@@ -97,7 +97,7 @@ const updateWorkflow = async (req, res) => {
 
     const updatedWorkflow = await Workflow.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      validationResult.data,
       { new: true }
     );
 
