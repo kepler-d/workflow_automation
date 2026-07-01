@@ -58,6 +58,47 @@ const executeNode = async (node, context, runId) => {
         }
         break;
 
+      case 'condition':
+        console.log(`[Engine] IF Condition Node: ${config.field} ${config.operator} ${config.value}`);
+        
+        // Helper to get deep value
+        const getDeepValue = (obj, path) => {
+          if (!path) return undefined;
+          return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        };
+        
+        const fieldValue = getDeepValue(context, config.field);
+        
+        // Coerce types for comparison
+        let cmpField = fieldValue;
+        let cmpValue = config.value;
+        if (cmpField !== undefined && cmpValue !== undefined && !isNaN(cmpField) && !isNaN(cmpValue)) {
+          cmpField = Number(cmpField);
+          cmpValue = Number(cmpValue);
+        }
+
+        let conditionResult = false;
+        switch (config.operator) {
+          case '==': conditionResult = (cmpField == cmpValue); break;
+          case '!=': conditionResult = (cmpField != cmpValue); break;
+          case '>': conditionResult = (cmpField > cmpValue); break;
+          case '<': conditionResult = (cmpField < cmpValue); break;
+          case '>=': conditionResult = (cmpField >= cmpValue); break;
+          case '<=': conditionResult = (cmpField <= cmpValue); break;
+          default: conditionResult = (cmpField == cmpValue);
+        }
+        
+        console.log(`[Engine] Condition evaluated to: ${conditionResult} (Field: ${cmpField}, Value: ${cmpValue})`);
+        outputData = { field: config.field, evaluatedTo: conditionResult };
+        
+        log.status = status;
+        log.outputData = outputData;
+        log.error = errorMsg;
+        log.finishedAt = new Date();
+        await log.save();
+        
+        return { success: true, context, conditionResult };
+
       default:
         throw new Error(`Unknown node type: ${node.type}`);
     }
@@ -102,11 +143,11 @@ const executeWorkflow = async (workflow, triggerPayload) => {
       if (!graph[edge.source]) {
         graph[edge.source] = [];
       }
-      graph[edge.source].push(edge.target);
+      graph[edge.source].push({ target: edge.target, handle: edge.sourceHandle });
     });
 
-    // 2. Find start nodes (Webhook)
-    const startNodes = nodes.filter(n => n.type === 'webhook');
+    // 2. Find start nodes (Webhook or Schedule)
+    const startNodes = nodes.filter(n => n.type === 'webhook' || n.type === 'schedule');
     
     if (startNodes.length === 0) {
       console.log(`[Engine] Execution aborted: No webhook trigger found.`);
@@ -140,7 +181,7 @@ const executeWorkflow = async (workflow, triggerPayload) => {
       nextVisited.add(node.id);
       
       // Execute current node
-      const { success, context: nextContext } = await executeNode(node, context, run._id);
+      const { success, context: nextContext, conditionResult } = await executeNode(node, context, run._id);
       nextContext.pathVisited = nextVisited; // Update it on the next context
 
       if (!success) {
@@ -155,9 +196,18 @@ const executeWorkflow = async (workflow, triggerPayload) => {
       }
 
       // Find next nodes to execute
-      const targetIds = graph[node.id] || [];
-      for (const targetId of targetIds) {
-        const targetNode = nodeMap[targetId];
+      const outgoingEdges = graph[node.id] || [];
+      for (const edge of outgoingEdges) {
+        // If it's a condition node, only follow the edge matching the conditionResult
+        if (node.type === 'condition') {
+          const expectedHandle = conditionResult ? 'true' : 'false';
+          if (edge.handle !== expectedHandle) {
+            console.log(`[Engine] Branch ${edge.handle} skipped for condition ${node.id}`);
+            continue; 
+          }
+        }
+        
+        const targetNode = nodeMap[edge.target];
         if (targetNode) {
           queue.push({
             node: targetNode,

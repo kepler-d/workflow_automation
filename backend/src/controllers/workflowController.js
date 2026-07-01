@@ -149,6 +149,9 @@ const deleteWorkflow = async (req, res) => {
 
     await workflow.deleteOne();
 
+    // Reload all schedules so deleted schedules are stopped
+    await reloadSchedules();
+
     return res.status(200).json({ id: req.params.id });
   } catch (error) {
     return res.status(500).json({ message: error.message });

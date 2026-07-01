@@ -10,7 +10,7 @@ import {
   addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock, History } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock, History, GitBranch } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 
@@ -19,6 +19,7 @@ import LogNode from '../components/nodes/LogNode';
 import HttpNode from '../components/nodes/HttpNode';
 import DelayNode from '../components/nodes/DelayNode';
 import ScheduleNode from '../components/nodes/ScheduleNode';
+import ConditionNode from '../components/nodes/ConditionNode';
 import ExecutionHistoryModal from '../components/ExecutionHistoryModal';
 
 const nodeTypes = {
@@ -27,6 +28,7 @@ const nodeTypes = {
   http: HttpNode,
   delay: DelayNode,
   schedule: ScheduleNode,
+  condition: ConditionNode,
 };
 
 const WorkflowBuilder = () => {
@@ -90,6 +92,7 @@ const WorkflowBuilder = () => {
     let config = {};
     if (type === 'webhook') config = { path: "/new-user" };
     if (type === 'schedule') config = { cronExpression: "0 9 * * *" };
+    if (type === 'condition') config = { field: "payload.amount", operator: ">", value: "1000" };
     if (type === 'log') config = { message: "Workflow Started" };
     if (type === 'delay') config = { seconds: 10 };
     if (type === 'http') config = { url: "", method: "GET" };
@@ -182,6 +185,14 @@ const WorkflowBuilder = () => {
           >
             <Clock size={18} />
             <span className="font-medium text-sm">Schedule Trigger</span>
+          </button>
+
+          <button 
+            onClick={() => addNode('condition')}
+            className="flex items-center gap-3 p-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 transition-colors text-left"
+          >
+            <GitBranch size={18} />
+            <span className="font-medium text-sm">IF Condition</span>
           </button>
 
           <button 
