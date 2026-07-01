@@ -15,8 +15,12 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
       console.log(`Server running on port ${PORT}`);
+      
+      // Initialize the cron scheduler once the server starts
+      const { reloadSchedules } = require('./src/services/schedulerService');
+      await reloadSchedules();
     });
   } catch (error) {
     console.error('Failed to start server:', error.message);

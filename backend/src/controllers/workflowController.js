@@ -10,6 +10,8 @@ const workflowSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const { reloadSchedules } = require('../services/schedulerService');
+
 // @desc    Get all workflows for logged in user
 // @route   GET /api/workflows
 // @access  Private
@@ -97,19 +99,31 @@ const updateWorkflow = async (req, res) => {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
-    const validationResult = workflowSchema.partial().safeParse(req.body);
-    if (!validationResult.success) {
-      return res.status(400).json({
-        message: 'Validation failed',
-        errors: validationResult.error.errors,
-      });
+    // Extract schedule from a 'schedule' node if it exists
+    let scheduleConfig = { enabled: false, cronExpression: "" };
+    if (req.body.nodes) {
+      const scheduleNode = req.body.nodes.find(n => n.type === 'schedule');
+      if (scheduleNode && scheduleNode.data?.config) {
+        scheduleConfig = {
+          enabled: true,
+          cronExpression: scheduleNode.data.config.cronExpression || ""
+        };
+      }
     }
+
+    const updatedData = {
+      ...req.body,
+      schedule: scheduleConfig
+    };
 
     const updatedWorkflow = await Workflow.findByIdAndUpdate(
       req.params.id,
-      validationResult.data,
+      updatedData,
       { new: true }
     );
+
+    // Reload all schedules to apply changes immediately
+    await reloadSchedules();
 
     return res.status(200).json(updatedWorkflow);
   } catch (error) {

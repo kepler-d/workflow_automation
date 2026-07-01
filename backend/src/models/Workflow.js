@@ -23,6 +23,16 @@ const workflowSchema = new mongoose.Schema(
       type: Array,
       default: [],
     },
+    schedule: {
+      enabled: {
+        type: Boolean,
+        default: false
+      },
+      cronExpression: {
+        type: String,
+        default: ""
+      }
+    },
     isActive: {
       type: Boolean,
       default: true,

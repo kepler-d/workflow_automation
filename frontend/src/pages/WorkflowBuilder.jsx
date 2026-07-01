@@ -18,6 +18,7 @@ import WebhookNode from '../components/nodes/WebhookNode';
 import LogNode from '../components/nodes/LogNode';
 import HttpNode from '../components/nodes/HttpNode';
 import DelayNode from '../components/nodes/DelayNode';
+import ScheduleNode from '../components/nodes/ScheduleNode';
 import ExecutionHistoryModal from '../components/ExecutionHistoryModal';
 
 const nodeTypes = {
@@ -25,6 +26,7 @@ const nodeTypes = {
   log: LogNode,
   http: HttpNode,
   delay: DelayNode,
+  schedule: ScheduleNode,
 };
 
 const WorkflowBuilder = () => {
@@ -87,6 +89,7 @@ const WorkflowBuilder = () => {
 
     let config = {};
     if (type === 'webhook') config = { path: "/new-user" };
+    if (type === 'schedule') config = { cronExpression: "0 9 * * *" };
     if (type === 'log') config = { message: "Workflow Started" };
     if (type === 'delay') config = { seconds: 10 };
     if (type === 'http') config = { url: "", method: "GET" };
@@ -95,7 +98,20 @@ const WorkflowBuilder = () => {
       id: newNodeId,
       type,
       position: { x: xPos, y: yPos },
-      data: { label: `${type} node`, config },
+      data: { 
+        label: `${type} node`, 
+        config,
+        onChange: (newConfig) => {
+          setNodes((nds) => 
+            nds.map((n) => {
+              if (n.id === newNodeId) {
+                return { ...n, data: { ...n.data, config: newConfig } };
+              }
+              return n;
+            })
+          );
+        }
+      },
     };
 
     setNodes((nds) => nds.concat(newNode));
@@ -158,6 +174,14 @@ const WorkflowBuilder = () => {
           >
             <Webhook size={18} />
             <span className="font-medium text-sm">Webhook Trigger</span>
+          </button>
+
+          <button 
+            onClick={() => addNode('schedule')}
+            className="flex items-center gap-3 p-3 rounded-xl border border-pink-200 bg-pink-50 text-pink-700 hover:bg-pink-100 transition-colors text-left"
+          >
+            <Clock size={18} />
+            <span className="font-medium text-sm">Schedule Trigger</span>
           </button>
 
           <button 
