@@ -2,6 +2,9 @@ require('dotenv').config();
 const connectDB = require('./src/config/db');
 const app = require('./src/app');
 
+// Initialize background workers
+require('./src/services/workflowWorker');
+
 // Environment Variable Validation
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET missing in environment variables");

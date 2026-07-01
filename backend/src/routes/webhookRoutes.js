@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Workflow = require('../models/Workflow');
-const { executeWorkflow } = require('../services/workflowEngine');
+const { workflowQueue } = require('../services/workflowQueue');
 
 // @desc    Trigger a workflow via webhook
 // @route   POST /api/webhooks/:webhookPath
@@ -24,9 +24,18 @@ router.post('/:webhookPath', async (req, res) => {
     // Acknowledge the webhook immediately so the caller doesn't wait for execution
     res.status(202).json({ message: 'Workflow triggered successfully' });
 
-    // Start execution asynchronously in the background
-    executeWorkflow(workflow, req.body).catch(err => {
-      console.error(`[Engine Error] Workflow execution failed:`, err);
+    // Start execution safely in the background via BullMQ
+    await workflowQueue.add('execute-workflow', {
+      workflowId: workflow._id,
+      payload: req.body
+    }, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      },
+      removeOnComplete: true, // Keep the queue clean
+      removeOnFail: false // Allow inspection of failed jobs in Redis if necessary
     });
 
   } catch (error) {
