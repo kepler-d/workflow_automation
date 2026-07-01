@@ -22,6 +22,12 @@ const executeNode = async (node, context, runId) => {
   let errorMsg = null;
   let status = 'success';
 
+  // Helper to get deep value from context (used by condition and email nodes)
+  const getDeepValue = (obj, path) => {
+    if (!path) return undefined;
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+  };
+
   try {
     switch (node.type) {
       case 'webhook':
@@ -61,12 +67,6 @@ const executeNode = async (node, context, runId) => {
       case 'condition':
         console.log(`[Engine] IF Condition Node: ${config.field} ${config.operator} ${config.value}`);
         
-        // Helper to get deep value
-        const getDeepValue = (obj, path) => {
-          if (!path) return undefined;
-          return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-        };
-        
         const fieldValue = getDeepValue(context, config.field);
         
         // Coerce types for comparison
@@ -98,6 +98,29 @@ const executeNode = async (node, context, runId) => {
         await log.save();
         
         return { success: true, context, conditionResult };
+
+      case 'email':
+        console.log(`[Engine] Email Node: Processing email to ${config.to}`);
+        
+        const emailService = require('./emailService');
+        
+        // Simple string replacement for context templating (e.g. {{payload.email}})
+        const interpolate = (str, ctx) => {
+          if (!str) return '';
+          return str.replace(/\{\{([\w.]+)\}\}/g, (match, path) => {
+            const val = getDeepValue(ctx, path);
+            return val !== undefined ? val : match;
+          });
+        };
+
+        const to = interpolate(config.to, context);
+        const subject = interpolate(config.subject, context);
+        const body = interpolate(config.body, context);
+
+        const emailResult = await emailService.sendEmail({ to, subject, body });
+        
+        outputData = { to, subject, result: emailResult };
+        break;
 
       default:
         throw new Error(`Unknown node type: ${node.type}`);

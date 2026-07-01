@@ -10,7 +10,7 @@ import {
   addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock, History, GitBranch } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock, History, GitBranch, Mail } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 
@@ -20,6 +20,7 @@ import HttpNode from '../components/nodes/HttpNode';
 import DelayNode from '../components/nodes/DelayNode';
 import ScheduleNode from '../components/nodes/ScheduleNode';
 import ConditionNode from '../components/nodes/ConditionNode';
+import EmailNode from '../components/nodes/EmailNode';
 import ExecutionHistoryModal from '../components/ExecutionHistoryModal';
 
 const nodeTypes = {
@@ -29,6 +30,7 @@ const nodeTypes = {
   delay: DelayNode,
   schedule: ScheduleNode,
   condition: ConditionNode,
+  email: EmailNode,
 };
 
 const WorkflowBuilder = () => {
@@ -93,6 +95,7 @@ const WorkflowBuilder = () => {
     if (type === 'webhook') config = { path: "/new-user" };
     if (type === 'schedule') config = { cronExpression: "0 9 * * *" };
     if (type === 'condition') config = { field: "payload.amount", operator: ">", value: "1000" };
+    if (type === 'email') config = { to: "", subject: "", body: "" };
     if (type === 'log') config = { message: "Workflow Started" };
     if (type === 'delay') config = { seconds: 10 };
     if (type === 'http') config = { url: "", method: "GET" };
@@ -193,6 +196,14 @@ const WorkflowBuilder = () => {
           >
             <GitBranch size={18} />
             <span className="font-medium text-sm">IF Condition</span>
+          </button>
+
+          <button 
+            onClick={() => addNode('email')}
+            className="flex items-center gap-3 p-3 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors text-left"
+          >
+            <Mail size={18} />
+            <span className="font-medium text-sm">Send Email</span>
           </button>
 
           <button 
