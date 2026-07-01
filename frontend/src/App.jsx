@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WorkflowBuilder from './pages/WorkflowBuilder';
+import ExecutionHistory from './pages/ExecutionHistory';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
           element={
             <ProtectedRoute>
               <WorkflowBuilder />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/executions" 
+          element={
+            <ProtectedRoute>
+              <ExecutionHistory />
             </ProtectedRoute>
           } 
         />

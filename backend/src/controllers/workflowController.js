@@ -175,6 +175,25 @@ const getRunLogs = async (req, res) => {
   }
 };
 
+// @desc    Get all execution runs for a user across all workflows
+// @route   GET /api/workflows/runs/all
+// @access  Private
+const getAllUserRuns = async (req, res) => {
+  try {
+    const workflows = await Workflow.find({ userId: req.user.id });
+    const workflowIds = workflows.map(w => w._id);
+
+    const runs = await WorkflowRun.find({ workflow: { $in: workflowIds } })
+      .populate('workflow', 'name webhookPath')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    return res.status(200).json(runs);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getWorkflows,
   getWorkflow,
@@ -183,4 +202,5 @@ module.exports = {
   deleteWorkflow,
   getWorkflowRuns,
   getRunLogs,
+  getAllUserRuns,
 };

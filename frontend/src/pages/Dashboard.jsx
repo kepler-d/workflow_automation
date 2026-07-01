@@ -85,7 +85,13 @@ const Dashboard = () => {
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-indigo-600">FlowForge</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
+              <button
+                onClick={() => navigate('/executions')}
+                className="text-gray-600 hover:text-indigo-600 font-medium text-sm transition-colors"
+              >
+                Execution History
+              </button>
               <span className="text-gray-700 font-medium">Welcome, {user?.name}</span>
               <button
                 onClick={handleLogout}
