@@ -96,6 +96,7 @@ const ExecutionHistoryModal = ({ isOpen, onClose, workflowId }) => {
                     <div>
                       <div className="text-sm text-gray-500 mb-1">
                         {new Date(run.startedAt).toLocaleString()}
+                        {run.durationMs !== undefined && ` • ${(run.durationMs / 1000).toFixed(2)}s`}
                       </div>
                       <div className="text-xs text-gray-400">Run ID: {run._id}</div>
                     </div>
@@ -116,6 +117,7 @@ const ExecutionHistoryModal = ({ isOpen, onClose, workflowId }) => {
                     <h3 className="font-semibold text-gray-900 mb-1">Run Details</h3>
                     <div className="text-sm text-gray-500">Started: {new Date(selectedRun.startedAt).toLocaleString()}</div>
                     {selectedRun.completedAt && <div className="text-sm text-gray-500">Completed: {new Date(selectedRun.completedAt).toLocaleString()}</div>}
+                    {selectedRun.durationMs !== undefined && <div className="text-sm text-gray-500">Duration: {(selectedRun.durationMs / 1000).toFixed(2)} seconds</div>}
                  </div>
                  <div>
                       {selectedRun.status === 'success' && <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-sm font-medium"><CheckCircle size={16} /> Success</span>}

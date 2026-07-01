@@ -59,9 +59,7 @@ const executeNode = async (node, context, runId) => {
         break;
 
       default:
-        console.log(`[Engine] Unknown node type: ${node.type}`);
-        outputData = { error: 'Unknown node type' };
-        break;
+        throw new Error(`Unknown node type: ${node.type}`);
     }
   } catch (error) {
     console.error(`[Engine] HTTP Node Error:`, error.message);
@@ -75,7 +73,7 @@ const executeNode = async (node, context, runId) => {
   log.finishedAt = new Date();
   await log.save();
 
-  return context;
+  return { success: status === 'success', context };
 };
 
 /**
@@ -142,8 +140,19 @@ const executeWorkflow = async (workflow, triggerPayload) => {
       nextVisited.add(node.id);
       
       // Execute current node
-      const nextContext = await executeNode(node, context, run._id);
+      const { success, context: nextContext } = await executeNode(node, context, run._id);
       nextContext.pathVisited = nextVisited; // Update it on the next context
+
+      if (!success) {
+        console.log(`[Engine] Node ${node.id} failed. Stopping traversal for this branch.`);
+        // Note: You can either just stop this branch or fail the entire workflow.
+        // We'll break the while loop entirely to fail the whole workflow.
+        run.status = 'failed';
+        run.completedAt = new Date();
+        run.durationMs = run.completedAt - run.startedAt;
+        await run.save();
+        return; // Exit execution early
+      }
 
       // Find next nodes to execute
       const targetIds = graph[node.id] || [];
@@ -160,6 +169,7 @@ const executeWorkflow = async (workflow, triggerPayload) => {
 
     run.status = 'success';
     run.completedAt = new Date();
+    run.durationMs = run.completedAt - run.startedAt;
     await run.save();
     console.log(`[Engine] Workflow execution completed.\n`);
 
@@ -167,6 +177,7 @@ const executeWorkflow = async (workflow, triggerPayload) => {
     console.error(`[Engine] Workflow execution failed:`, error);
     run.status = 'failed';
     run.completedAt = new Date();
+    run.durationMs = run.completedAt - run.startedAt;
     await run.save();
   }
 };

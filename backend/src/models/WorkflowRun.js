@@ -21,6 +21,9 @@ const workflowRunSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
+    durationMs: {
+      type: Number,
+    },
   },
   {
     timestamps: true,
