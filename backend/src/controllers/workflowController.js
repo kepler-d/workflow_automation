@@ -1,4 +1,6 @@
 const Workflow = require('../models/Workflow');
+const WorkflowRun = require('../models/WorkflowRun');
+const ExecutionLog = require('../models/ExecutionLog');
 const { z } = require('zod');
 
 const workflowSchema = z.object({
@@ -139,10 +141,46 @@ const deleteWorkflow = async (req, res) => {
   }
 };
 
+// @desc    Get execution runs for a workflow
+// @route   GET /api/workflows/:id/runs
+// @access  Private
+const getWorkflowRuns = async (req, res) => {
+  try {
+    const workflow = await Workflow.findById(req.params.id);
+    if (!workflow || workflow.userId.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Workflow not found or unauthorized' });
+    }
+
+    const runs = await WorkflowRun.find({ workflow: req.params.id }).sort({ createdAt: -1 });
+    return res.status(200).json(runs);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get detailed logs for a specific run
+// @route   GET /api/workflows/runs/:runId/logs
+// @access  Private
+const getRunLogs = async (req, res) => {
+  try {
+    const run = await WorkflowRun.findById(req.params.runId).populate('workflow');
+    if (!run || !run.workflow || run.workflow.userId.toString() !== req.user.id) {
+       return res.status(404).json({ message: 'Run not found or unauthorized' });
+    }
+
+    const logs = await ExecutionLog.find({ run: req.params.runId }).sort({ createdAt: 1 });
+    return res.status(200).json(logs);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getWorkflows,
   getWorkflow,
   createWorkflow,
   updateWorkflow,
   deleteWorkflow,
+  getWorkflowRuns,
+  getRunLogs,
 };

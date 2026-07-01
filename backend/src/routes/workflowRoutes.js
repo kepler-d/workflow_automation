@@ -6,12 +6,20 @@ const {
   createWorkflow,
   updateWorkflow,
   deleteWorkflow,
+  getWorkflowRuns,
+  getRunLogs,
 } = require('../controllers/workflowController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.route('/')
   .get(protect, getWorkflows)
   .post(protect, createWorkflow);
+
+router.route('/runs/:runId/logs')
+  .get(protect, getRunLogs);
+
+router.route('/:id/runs')
+  .get(protect, getWorkflowRuns);
 
 router.route('/:id')
   .get(protect, getWorkflow)

@@ -10,7 +10,7 @@ import {
   addEdge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Webhook, Terminal, Globe, Clock, History } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 
@@ -18,6 +18,7 @@ import WebhookNode from '../components/nodes/WebhookNode';
 import LogNode from '../components/nodes/LogNode';
 import HttpNode from '../components/nodes/HttpNode';
 import DelayNode from '../components/nodes/DelayNode';
+import ExecutionHistoryModal from '../components/ExecutionHistoryModal';
 
 const nodeTypes = {
   webhook: WebhookNode,
@@ -33,6 +34,7 @@ const WorkflowBuilder = () => {
   const [workflow, setWorkflow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -105,6 +107,11 @@ const WorkflowBuilder = () => {
 
   return (
     <div className="h-screen w-full flex flex-col bg-gray-50">
+      <ExecutionHistoryModal 
+        isOpen={isHistoryOpen} 
+        onClose={() => setIsHistoryOpen(false)} 
+        workflowId={id} 
+      />
       {/* Top Navbar */}
       <nav className="bg-white shadow-sm border-b px-4 py-3 flex justify-between items-center z-10">
         <div className="flex items-center gap-4">
@@ -121,14 +128,23 @@ const WorkflowBuilder = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium disabled:opacity-50"
-        >
-          <Save size={18} />
-          {saving ? 'Saving...' : 'Save Workflow'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsHistoryOpen(true)}
+            className="flex items-center gap-2 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium"
+          >
+            <History size={18} />
+            History
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm font-medium disabled:opacity-50"
+          >
+            <Save size={18} />
+            {saving ? 'Saving...' : 'Save Workflow'}
+          </button>
+        </div>
       </nav>
 
       <div className="flex-1 flex overflow-hidden">
